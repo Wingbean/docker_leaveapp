@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ระบบจองวันลา</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+  <h1>ฟอร์มจองวันลา</h1>
+  <form id="leaveForm">
+    <input name="name" placeholder="ชื่อ" required>
+    <input name="leave_type" placeholder="ประเภทวันลา" required>
+    <input type="date" name="start_date" required>
+    <input type="date" name="end_date" required>
+    <input name="note" placeholder="หมายเหตุ">
+    <input name="code" placeholder="รหัสลบ" required>
+    <button type="submit">ส่งข้อมูล</button>
+  </form>
+
+  <hr>
+  <h2>ปฏิทินวันลา</h2>
+  <select id="monthSelect"></select>
+  <div id="calendar"></div>
+
+  <hr>
+  <h2>รายการวันลาทั้งหมด</h2>
+  <table border="1" id="leaveTable"><thead></thead><tbody></tbody></table>
+
+  <script src="/static/script.js"></script>
+</body>
+</html>

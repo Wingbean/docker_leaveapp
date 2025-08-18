@@ -1,0 +1,5 @@
+.env
+dataslothy-365d6e2908af.json
+services/__pycache__/google_sheet_service.cpython-313.pyc
+*.tar
+venv/

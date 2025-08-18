@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center mb-4">จัดการผู้ใช้</h2>
+
+<table class="table table-striped table-bordered">
+  <thead class="table-dark">
+    <tr>
+      <th>#</th>
+      <th>ชื่อผู้ใช้</th>
+      <th>สถานะ</th>
+      <th>การจัดการ</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in users %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ user.username }}</td>
+        <td>{{ "ผู้ดูแล" if user.is_admin else "ผู้ใช้ทั่วไป" }}</td>
+        <td>
+          {% if not user.is_admin %}
+            <a href="{{ url_for('delete_user', user_id=user.id) }}" class="btn btn-danger btn-sm" onclick="return confirm('คุณแน่ใจหรือไม่ที่จะลบผู้ใช้นี้?')">ลบ</a>
+          {% else %}
+            <span class="text-muted">-</span>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<a href="/" class="btn btn-secondary">กลับหน้าแรก</a>
+{% endblock %}

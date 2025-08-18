@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="card p-4 shadow mx-auto" style="max-width: 400px;">
+    <h3 class="text-center mb-4">เข้าสู่ระบบ</h3>
+    <form method="POST" action="/login">
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        <input name="username" class="form-control" required>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Password</label>
+        <input name="password" type="password" class="form-control" required>
+      </div>
+      {% if error %}
+      <div class="alert alert-danger">{{ error }}</div>
+      {% endif %}
+      <button class="btn btn-primary w-100" type="submit">เข้าสู่ระบบ</button>
+    </form>
+  </div>
+{% endblock %}

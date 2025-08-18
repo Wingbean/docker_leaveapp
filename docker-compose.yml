@@ -1,0 +1,49 @@
+services:
+  web:
+    build: .
+    image: leaveapp-pc:dev
+    container_name: leave-app
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./dataslothy-365d6e2908af.json:/app/dataslothy-365d6e2908af.json:ro
+    env_file:
+      - .env
+    environment: # <--- เพิ่มส่วนนี้เข้ามา
+      - FLASK_APP=app
+      - TZ=Asia/Bangkok  
+    depends_on:
+      db:
+        condition: service_healthy # รอให้ db healthy ก่อน
+    healthcheck:                    # ตรวจ endpoint พื้นฐานของเว็บ
+      test: ["CMD", "wget", "-qO-", "http://localhost:5001/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  db:
+    image: mysql:8.0
+    # ถ้าเจอปัญหาบน arm64 ค่อยสลับเป็น: mysql:8.0-oracle หรือ mariadb:10.11
+    restart: unless-stopped
+    environment:
+      TZ: UTC
+      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_DATABASE: leaveapp
+      MYSQL_USER: leaveuser
+      MYSQL_PASSWORD: leavepass
+    volumes:
+      - db_data:/var/lib/mysql
+    # ไม่เปิดพอร์ตออกภายนอกเพื่อความปลอดภัย (คอมเมนต์ไว้ เผื่อคุณต้องใช้จากนอก compose)
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-prootpass"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+volumes:
+  db_data:

@@ -1,0 +1,45 @@
+<!-- ฟอร์มจองวันลา -->
+<h2 class="text-secondary">ฟอร์มจองวันลา</h2>
+<br>
+<form id="leaveForm" class="row g-3 mb-5 border border-dark rounded p-4 custom-border shadow">
+    <div class="col-md-6">
+        <label for="name" class="form-label">ชื่อ</label>
+        <select name="name" id="name" class="form-select" required>
+            <option value="" disabled selected>-- เลือกชื่อ --</option>
+            <option>นพ.เกษมศานต์</option>
+            <option>นพ.สุทธิศักดิ์</option>
+            <option>นพ.ศุภวิชญ์</option>
+            <option>นพ.ธีรภัทร</option>
+            <option>นพ.ธนนันท์</option>
+            <option>นพ.วีรภัทร</option>
+            <option>พญ.บุญชรัสมิ์</option>
+            <option>พญ.ณัฐวดี</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label for="leave_type" class="form-label">ประเภทวันลา</label>
+        <select name="leave_type" id="leave_type" class="form-select" required>
+            <option value="" disabled selected>-- เลือกประเภท --</option>
+            <option>ลาพักผ่อน</option>
+            <option>ลากิจ</option>
+            <option>ลาป่วย</option>
+            <option>ไปราชการ อบรม</option>
+            <option>ขอ OFF เวร</option>
+        </select>
+    </div>
+    <div class="col-md-6">
+        <label for="start_date" class="form-label">วันที่เริ่มลา</label>
+        <input type="date" name="start_date" id="start_date" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label for="end_date" class="form-label">วันที่สิ้นสุด</label>
+        <input type="date" name="end_date" id="end_date" class="form-control" required>
+    </div>
+    <div class="col-md-12">
+        <label for="note" class="form-label">หมายเหตุ</label>
+        <input name="note" id="note" class="form-control">
+    </div>
+    <div class="col-md-12">
+        <button type="submit" class="btn btn-warning">ส่งข้อมูล</button>
+    </div>
+</form>

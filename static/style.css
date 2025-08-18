@@ -1,0 +1,48 @@
+/* ปรับฟอนต์ระบบให้เหมือน Google Form */
+body {
+  font-family: Tahoma, sans-serif;
+  font-size: 14px;
+}
+
+/*ปรับ scrollbar ให้เข้ากับ dark theme*/
+body::-webkit-scrollbar {
+  width: 8px;
+}
+body::-webkit-scrollbar-thumb {
+  background-color: #555;
+  border-radius: 4px;
+}
+
+.custom-border {
+  border-width: 2px !important;  /* ปรับให้หนากว่าปกติเล็กน้อย */
+}
+
+/* จัดระยะห่างของตารางปฏิทิน */
+#calendar {
+  margin-top: 20px;
+}
+
+/* จัดกลางเฉพาะวันที่ในปฏิทิน */
+#calendar table td:nth-child(1),
+#calendar table td:nth-child(3),
+#calendar table th:nth-child(1),
+#calendar table th:nth-child(3) {
+  text-align: center;
+  width: 60px;
+}
+
+/* ให้ช่องชื่อยืดหยุ่นและตัดคำ */
+.calendar-table td:nth-child(2),
+.calendar-table td:nth-child(4) {
+  white-space: nowrap;
+  width: 1%;
+}
+
+/* เสริม Bootstrap striped ให้สลับสีแถวชัดขึ้น */
+#calendar tr:nth-child(even) {
+  background-color: #f9f9f9;
+} 
+
+#calendar tr.bg-white td {
+  color: #212529 !important;  /* สีเข้มแบบ Bootstrap */
+}

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">📊 Dashboard สถิติการลา</h2>
+
+<!-- กราฟ -->
+<canvas id="leaveChart" height="100"></canvas>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('leaveChart').getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_summary | map(attribute='month') | list | tojson }},
+            datasets: [{
+                label: 'จำนวนวันลา',
+                data: {{ monthly_summary | map(attribute='total') | list | tojson }},
+                backgroundColor: 'rgba(75, 192, 192, 0.6)'
+            }]
+        }
+    });
+</script>
+
+<!-- ตาราง -->
+<h4 class="mt-5">🧾 ตารางสรุปวันลาต่อคน</h4>
+<table class="table table-striped">
+  <thead><tr><th>ชื่อ</th><th>จำนวนวันลา</th></tr></thead>
+  <tbody>
+    {% for row in person_summary %}
+      <tr><td>{{ row.name }}</td><td>{{ row.total }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4 text-center">สมัครสมาชิก</h2>
+
+{% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+{% endif %}
+
+{% if message %}
+    <div class="alert alert-success">{{ message }}</div>
+{% endif %}
+
+<form method="post" class="mx-auto" style="max-width: 400px;">
+    <div class="mb-3">
+      <label for="username" class="form-label">ชื่อผู้ใช้</label>
+      <input type="text" name="username" id="username" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="email" class="form-label">อีเมล</label>
+      <input type="email" name="email" id="email" class="form-control" required>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">รหัสผ่าน</label>
+      <input type="password" name="password" id="password" class="form-control" required>
+    </div>
+
+    <button type="submit" class="btn btn-primary w-100">สมัครสมาชิก</button>
+
+    <div class="mt-3 text-center">
+      <small>หลังสมัครระบบจะส่งลิงก์ยืนยันไปยังอีเมลของคุณ</small>
+    </div>
+</form>
+{% endblock %}

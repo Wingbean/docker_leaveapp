@@ -1,0 +1,13 @@
+Flask
+gspread
+google-auth-oauthlib
+python-dotenv
+gunicorn
+flask_sqlalchemy
+flask-login
+mysqlclient
+bcrypt==4.0.1
+Flask-Migrate
+oauth2client==4.1.3
+google-api-python-client==2.179.0
+Werkzeug
