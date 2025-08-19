@@ -16,7 +16,7 @@ services:
       db:
         condition: service_healthy # รอให้ db healthy ก่อน
     healthcheck:                    # ตรวจ endpoint พื้นฐานของเว็บ
-      test: ["CMD", "wget", "-qO-", "http://localhost:5001/"]
+      test: ["CMD-SHELL", "curl -fsS http://localhost:5001/health || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 5

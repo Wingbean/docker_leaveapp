@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     pkg-config \
     libmariadb-dev \
-    libmariadb-dev-compat \
+    libmariadb-dev-compat curl \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

@@ -10,6 +10,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from flask_migrate import Migrate
 from flask_wtf.csrf import CSRFProtect, generate_csrf, CSRFError
 from services.telegram_service import send_telegram_message
+from sqlalchemy import text
 
 app = Flask(__name__)
 load_dotenv()
@@ -93,9 +94,14 @@ def load_user(user_id):
 # ------------------------------
 # Healthcheck (ไม่ต้องล็อกอิน)
 # ------------------------------
-@app.get("/health")
+@app.route("/health")
 def health():
-    return "ok", 200
+    try:
+        db.session.execute(text("SELECT 1"))
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return jsonify({"status": "ok" if db_ok else "degraded", "db": db_ok}), (200 if db_ok else 503)
 
 
 # ------------------------------
