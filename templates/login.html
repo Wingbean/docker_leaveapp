@@ -2,20 +2,43 @@
 
 {% block content %}
 <div class="card p-4 shadow mx-auto" style="max-width: 400px;">
-    <h3 class="text-center mb-4">เข้าสู่ระบบ</h3>
-    <form method="POST" action="/login">
-      <div class="mb-3">
-        <label class="form-label">Username</label>
-        <input name="username" class="form-control" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Password</label>
-        <input name="password" type="password" class="form-control" required>
-      </div>
-      {% if error %}
-      <div class="alert alert-danger">{{ error }}</div>
-      {% endif %}
-      <button class="btn btn-primary w-100" type="submit">เข้าสู่ระบบ</button>
-    </form>
-  </div>
+  <h3 class="text-center mb-4">เข้าสู่ระบบ</h3>
+
+  {# [CHANGE] ใช้ url_for ให้ชัดเจน ปลอดภัยกับ subpath/reverse proxy #}
+  <form method="POST" action="{{ url_for('login') }}" novalidate>
+    <div class="mb-3">
+      <label class="form-label" for="username">Username</label>
+      <input
+        id="username"
+        name="username"
+        class="form-control"
+        required
+        autocomplete="username"          {# [ADD] ช่วย auto-fill ถูก #}
+        autocapitalize="off"             {# [ADD] กันมือถือเปลี่ยนตัวอักษร #}
+        spellcheck="false"               {# [ADD] กัน auto-correct #}
+        autofocus                        {# [ADD] โฟกัสที่ฟิลด์แรกทันที #}
+        maxlength="50"                   {# [ADD] sync schema models.User.username #}
+      >
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="password">Password</label>
+      <input
+        id="password"
+        name="password"
+        type="password"
+        class="form-control"
+        required
+        autocomplete="current-password"  {# [ADD] ให้เบราว์เซอร์จำรหัสผ่าน #}
+        minlength="8" maxlength="128"    {# [ADD] guard ขั้นต้น + sync field length #}
+      >
+    </div>
+
+    <button class="btn btn-primary w-100" type="submit">เข้าสู่ระบบ</button>
+
+    <div class="mt-3 text-center">
+      <a href="{{ url_for('forgot_password') }}" class="small">ลืมรหัสผ่าน?</a>
+    </div>
+  </form>
+</div>
 {% endblock %}

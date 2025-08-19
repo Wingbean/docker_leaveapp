@@ -1,45 +1,104 @@
 <!-- ฟอร์มจองวันลา -->
 <h2 class="text-secondary">ฟอร์มจองวันลา</h2>
 <br>
-<form id="leaveForm" class="row g-3 mb-5 border border-dark rounded p-4 custom-border shadow">
-    <div class="col-md-6">
-        <label for="name" class="form-label">ชื่อ</label>
-        <select name="name" id="name" class="form-select" required>
-            <option value="" disabled selected>-- เลือกชื่อ --</option>
-            <option>นพ.เกษมศานต์</option>
-            <option>นพ.สุทธิศักดิ์</option>
-            <option>นพ.ศุภวิชญ์</option>
-            <option>นพ.ธีรภัทร</option>
-            <option>นพ.ธนนันท์</option>
-            <option>นพ.วีรภัทร</option>
-            <option>พญ.บุญชรัสมิ์</option>
-            <option>พญ.ณัฐวดี</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <label for="leave_type" class="form-label">ประเภทวันลา</label>
-        <select name="leave_type" id="leave_type" class="form-select" required>
-            <option value="" disabled selected>-- เลือกประเภท --</option>
-            <option>ลาพักผ่อน</option>
-            <option>ลากิจ</option>
-            <option>ลาป่วย</option>
-            <option>ไปราชการ อบรม</option>
-            <option>ขอ OFF เวร</option>
-        </select>
-    </div>
-    <div class="col-md-6">
-        <label for="start_date" class="form-label">วันที่เริ่มลา</label>
-        <input type="date" name="start_date" id="start_date" class="form-control" required>
-    </div>
-    <div class="col-md-6">
-        <label for="end_date" class="form-label">วันที่สิ้นสุด</label>
-        <input type="date" name="end_date" id="end_date" class="form-control" required>
-    </div>
-    <div class="col-md-12">
-        <label for="note" class="form-label">หมายเหตุ</label>
-        <input name="note" id="note" class="form-control">
-    </div>
-    <div class="col-md-12">
-        <button type="submit" class="btn btn-warning">ส่งข้อมูล</button>
-    </div>
+
+<!-- [ADD] aria-describedby เพื่ออธิบายการใช้งานให้ชัด (a11y) -->
+<form id="leaveForm"
+      class="row g-3 mb-5 border border-dark rounded p-4 custom-border shadow"
+      aria-describedby="leaveFormHelp">
+  <div id="leaveFormHelp" class="form-text">
+    กรอกช่วงวันที่ (สิ้นสุดต้องไม่ก่อนเริ่ม) และเพิ่มหมายเหตุได้สูงสุด 100 ตัวอักษร
+  </div>
+
+  <div class="col-md-6">
+    <label for="name" class="form-label">ชื่อ</label>
+    <!-- [KEEP] คง id/name เดิมเพื่อให้ backend รับค่าเหมือนเดิม -->
+    <!-- [ADD] required เดิมมีอยู่แล้ว -->
+    <select name="name" id="name" class="form-select" required>
+      <option value="" disabled selected>-- เลือกชื่อ --</option>
+      <option>นพ.เกษมศานต์</option>
+      <option>นพ.สุทธิศักดิ์</option>
+      <option>นพ.ศุภวิชญ์</option>
+      <option>นพ.ธีรภัทร</option>
+      <option>นพ.ธนนันท์</option>
+      <option>นพ.วีรภัทร</option>
+      <option>พญ.บุญชรัสมิ์</option>
+      <option>พญ.ณัฐวดี</option>
+    </select>
+  </div>
+
+  <div class="col-md-6">
+    <label for="leave_type" class="form-label">ประเภทวันลา</label>
+    <select name="leave_type" id="leave_type" class="form-select" required>
+      <option value="" disabled selected>-- เลือกประเภท --</option>
+      <option>ลาพักผ่อน</option>
+      <option>ลากิจ</option>
+      <option>ลาป่วย</option>
+      <option>ไปราชการ อบรม</option>
+      <option>ขอ OFF เวร</option>
+    </select>
+  </div>
+
+  <div class="col-md-6">
+    <label for="start_date" class="form-label">วันที่เริ่มลา</label>
+    <!-- [ADD] autocomplete="off" กันเบราว์เซอร์เติมมั่ว / [ADD] data-constraint เพื่อ JS ใช้ตั้ง min/max -->
+    <input type="date" name="start_date" id="start_date" class="form-control"
+           required autocomplete="off" data-role="start-date">
+  </div>
+
+  <div class="col-md-6">
+    <label for="end_date" class="form-label">วันที่สิ้นสุด</label>
+    <!-- [ADD] autocomplete="off" / [ADD] data-role="end-date" -->
+    <!-- [ADD] จะตั้งค่า min อัตโนมัติให้ไม่ก่อน start_date โดยสคริปต์ด้านล่าง -->
+    <input type="date" name="end_date" id="end_date" class="form-control"
+           required autocomplete="off" data-role="end-date">
+  </div>
+
+  <div class="col-md-12">
+    <label for="note" class="form-label">หมายเหตุ</label>
+    <!-- [CHANGE] เพิ่ม maxlength ให้ตรง schema (100) และ autocomplete="off" -->
+    <!-- [WHY] กันข้อความยาวเกินและให้ UX ตรงกับข้อจำกัดฐานข้อมูล -->
+    <input name="note" id="note" class="form-control" maxlength="100" autocomplete="off">
+  </div>
+
+  <div class="col-md-12 d-flex gap-2">
+    <!-- [ADD] ปุ่มรีเซ็ตฟอร์ม (สะดวกเวลาใส่ข้อมูลใหม่) -->
+    <button type="reset" class="btn btn-outline-secondary">ล้างฟอร์ม</button>
+    <button type="submit" class="btn btn-warning">ส่งข้อมูล</button>
+  </div>
 </form>
+
+<!-- [ADD] สคริปต์เล็ก ๆ ตั้งค่า default และ constraint ของวันให้ถูกต้อง
+     - ตั้ง start_date/end_date = วันนี้ โดยอัตโนมัติ
+     - บังคับ end_date.min = start_date ทุกครั้งที่ผู้ใช้เปลี่ยนค่า
+     - ป้องกันช่วงวันลาผิดตรรกะตั้งแต่ฝั่งหน้าเว็บ (เร็ว และลด round-trip) -->
+<script>
+  (function () {
+    const startEl = document.querySelector('[data-role="start-date"]');
+    const endEl = document.querySelector('[data-role="end-date"]');
+
+    if (!startEl || !endEl) return;
+
+    // [ADD] ตั้งค่าเริ่มต้นเป็นวันนี้ (ฟอร์แมต YYYY-MM-DD)
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    const todayYMD = `${yyyy}-${mm}-${dd}`;
+
+    if (!startEl.value) startEl.value = todayYMD;
+    // [ADD] end เริ่มเป็นวันเดียวกับ start
+    if (!endEl.value) endEl.value = startEl.value;
+
+    // [ADD] กำหนด min ของ end = start (และ min ของ start = วันนี้ ถ้าต้องการไม่ย้อนหลัง ให้เปิดคอมเมนต์)
+    // startEl.min = todayYMD; // <— เปิดถ้าต้องการห้ามย้อนหลัง
+    endEl.min = startEl.value;
+
+    startEl.addEventListener('change', () => {
+      // อัปเดต min ของ end ทุกครั้งที่ start เปลี่ยน
+      endEl.min = startEl.value;
+      // ถ้า end น้อยกว่า start ให้เลื่อน end ตาม start ทันที
+      if (endEl.value < startEl.value) endEl.value = startEl.value;
+    });
+  })();
+</script>

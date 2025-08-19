@@ -1,8 +1,8 @@
-from flask import Flask, render_template, request, jsonify, redirect, session, url_for, flash, abort
+from flask import Flask, render_template, request, jsonify, redirect, session, url_for, flash, abort, current_app
 from services.google_sheet_service import add_leave, get_all_leaves, get_leaves_by_month, delete_leave, get_leave_summary_by_month, get_leave_summary_by_person
 import os
 from dotenv import load_dotenv
-from services.auth_service import create_user, authenticate_user
+from services.auth_service import create_user, authenticate_user, send_verification_email
 from services.data_service import save_leave_to_db
 from models import db, User, Leave
 import uuid
@@ -121,19 +121,23 @@ def login():
     if request.method == "POST":
         user = authenticate_user(request.form["username"], request.form["password"])
         if user:
-            login_user(user) # ✅ ใช้ login_user แทน session
-            flash("Logged in successfully.")
-            return redirect("/")
-        return render_template("login.html", error="Invalid credentials")
+            login_user(user)
+            flash("เข้าสู่ระบบสำเร็จ", "success")
+            return redirect(url_for("index"))
+        # ไม่บอกละเอียดเกินไป: ปลอดภัยกว่า + ครอบคลุมเคสยังไม่ยืนยันอีเมล
+        flash("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง หรือยังไม่ได้ยืนยันอีเมล", "danger")
+        return redirect(url_for("login"))  # PRG: กันกด refresh แล้วฟอร์มส่งซ้ำ
+
+    # GET: แสดงหน้า login เฉย ๆ (ข้อความจะมาจาก flash ใน base.html)
     return render_template("login.html")
 
 # หน้า Logout
 @app.route("/logout")
 @login_required
 def logout():
-    logout_user()   # ✅ ใช้ logout_user
-    flash("You have been logged out.")
-    return redirect("/login")
+    logout_user()
+    flash("ออกจากระบบแล้ว", "info")
+    return redirect(url_for("login"))
 
 @app.route("/")
 @login_required
@@ -144,39 +148,53 @@ def index():
 @app.route("/forgot", methods=["GET", "POST"])
 def forgot_password():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].strip()
         user = User.query.filter_by(username=username).first()
 
+        # ไม่เปิดเผยว่ามีบัญชีหรือไม่ (ป้องกัน user-enumeration)
         if user:
-            user.reset_token = str(uuid.uuid4()) # สร้าง UUID token แบบสุ่ม
+            user.reset_token = str(uuid.uuid4())
             db.session.commit()
-            reset_url = f"{app.config['BASE_URL'].rstrip('/')}/reset/{user.reset_token}"  # ลิงก์ reset
-            flash(f"Send this link to reset: {reset_url}")  # แจ้งผู้ใช้
-        else:
-            flash("User not found.")
+            reset_url = f"{request.url_root.rstrip('/')}/reset/{user.reset_token}"
+            # ในโปรดักชัน: ส่งอีเมลลิงก์นี้แทนการโชว์
+            current_app.logger.info("Password reset URL for user_id=%s: %s", user.id, reset_url)
 
-    return render_template("forgot_password.html")  # แสดงฟอร์มให้ใส่ username
+        flash("ถ้าพบชื่อผู้ใช้นี้ ระบบได้ส่งคำแนะนำไปยังอีเมลที่ผูกไว้แล้ว", "info")
+        return redirect(url_for("forgot_password"))  # PRG
+
+    return render_template("forgot_password.html")
 
 # หน้า reset pasword
 @app.route("/reset/<token>", methods=["GET", "POST"])
 def reset_password(token):
     user = User.query.filter_by(reset_token=token).first()
-
     if not user:
-        flash("Invalid or expired token.")
-        return redirect("/login")
+        flash("Invalid or expired token.", "danger")
+        return redirect(url_for("login"))
 
     if request.method == "POST":
-        password = request.form["password"]
-        user.set_password(password)  # แฮชรหัสผ่านใหม่
-        user.reset_token = None  # เคลียร์ token เพื่อความปลอดภัย
-        db.session.commit()
-        flash("Password reset successful.")
-        return redirect("/login")
+        pwd = request.form.get("password", "").strip()
+        if len(pwd) < 8:
+            flash("รหัสผ่านต้องยาวอย่างน้อย 8 ตัวอักษร", "danger")
+            return redirect(url_for("reset_password", token=token))
+
+        try:
+            user.set_password(pwd)
+            user.reset_token = None
+            db.session.commit()
+        except Exception:
+            db.session.rollback()
+            flash("เกิดข้อผิดพลาดกับฐานข้อมูล", "danger")
+            return redirect(url_for("reset_password", token=token))
+
+        flash("ตั้งรหัสผ่านใหม่เรียบร้อยแล้ว", "success")
+        return redirect(url_for("login"))
 
     return render_template("reset_password.html", token=token)
 
-# หน้า admin
+#---------------#
+#   หน้า admin   #
+#---------------#
 @app.route("/admin")
 @login_required
 def admin():
@@ -186,17 +204,125 @@ def admin():
     users = User.query.all()
     return render_template("admin.html", users=users)
 
-@app.route("/admin/delete/<int:user_id>", methods=["POST"])  # ควรใช้ POST (TODo: เพิ่ม CSRF ในฟอร์ม)
+@app.route("/admin/delete/<int:user_id>", methods=["POST"])
 @login_required
 def delete_user(user_id):
-    if not getattr(current_user, "is_admin", False):
-        flash("Access denied.")
-        return redirect("/")
-    user = db.session.get(User, user_id) or abort(404)
-    db.session.delete(user)
-    db.session.commit()
-    flash("User deleted.")
-    return redirect("/admin")
+    if not current_user.is_admin:
+        flash("Access denied.", "danger")
+        return redirect(url_for("index"))
+
+    # กันลบตัวเอง
+    if current_user.id == user_id:
+        flash("ไม่สามารถลบบัญชีของตัวเองได้", "warning")
+        return redirect(url_for("admin"))
+
+    user = User.query.get_or_404(user_id)
+    if user.is_admin:
+        flash("ไม่สามารถลบผู้ดูแลระบบได้", "warning")
+        return redirect(url_for("admin"))
+
+    try:
+        db.session.delete(user)
+        db.session.commit()
+        flash("ลบผู้ใช้เรียบร้อย", "success")
+    except Exception:
+        db.session.rollback()
+        flash("ลบไม่สำเร็จ (ปัญหาฐานข้อมูล)", "danger")
+
+    return redirect(url_for("admin"))
+
+@app.route("/admin/resend-verify/<int:user_id>", methods=["POST"])
+@login_required
+def admin_resend_verify(user_id):
+    if not current_user.is_admin:
+        flash("Access denied.", "danger"); return redirect(url_for("index"))
+    user = User.query.get_or_404(user_id)
+    if user.is_verified:
+        flash("ผู้ใช้นี้ยืนยันอีเมลแล้ว", "info")
+        return redirect(url_for("admin"))
+    try:
+        # ถ้าเคยมี verify_token อยู่แล้ว ใช้อันเดิม; ถ้าไม่มีก็ออกใหม่
+        if not user.verify_token:
+            user.verify_token = str(uuid.uuid4())
+            db.session.commit()
+        send_verification_email(user)
+        flash("ส่งลิงก์ยืนยันใหม่แล้ว", "success")
+    except Exception as e:
+        current_app.logger.exception(e)
+        flash("ส่งลิงก์ไม่สำเร็จ", "danger")
+    return redirect(url_for("admin"))
+
+@app.route("/admin/force-reset/<int:user_id>", methods=["POST"])
+@login_required
+def admin_force_reset(user_id):
+    if not current_user.is_admin:
+        flash("Access denied.", "danger"); return redirect(url_for("index"))
+    user = User.query.get_or_404(user_id)
+    try:
+        user.reset_token = str(uuid.uuid4())
+        db.session.commit()
+        reset_url = f"{current_app.config['BASE_URL'].rstrip('/')}/reset/{user.reset_token}"
+        # โปรดักชัน: ส่งอีเมล reset ให้ user.email; ตอนนี้ log ไว้พอ
+        current_app.logger.info("Force reset for user_id=%s: %s", user.id, reset_url)
+        flash("ออกลิงก์รีเซ็ตรหัสผ่านแล้ว", "success")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception(e)
+        flash("ทำรายการไม่สำเร็จ", "danger")
+    return redirect(url_for("admin"))
+
+@app.route("/admin/toggle-admin/<int:user_id>", methods=["POST"])
+@login_required
+def admin_toggle_admin(user_id):
+    if not current_user.is_admin:
+        flash("Access denied.", "danger"); return redirect(url_for("index"))
+    if current_user.id == user_id:
+        flash("ไม่สามารถเปลี่ยนสิทธิ์ของตัวเองได้", "warning")
+        return redirect(url_for("admin"))
+
+    user = User.query.get_or_404(user_id)
+    # กัน demote จนเหลือ admin คนเดียว
+    admins = User.query.filter_by(is_admin=True).all()
+    if user.is_admin and len(admins) <= 1:
+        flash("ไม่สามารถถอนสิทธิ์แอดมินคนสุดท้ายได้", "warning")
+        return redirect(url_for("admin"))
+
+    try:
+        user.is_admin = not user.is_admin
+        db.session.commit()
+        flash(("เลื่อนเป็นแอดมิน" if user.is_admin else "ถอนสิทธิ์แอดมิน") + "เรียบร้อย", "success")
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.exception(e)
+        flash("ทำรายการไม่สำเร็จ", "danger")
+    return redirect(url_for("admin"))
+
+# Export CSV
+@app.route("/admin/export/users.csv")
+@login_required
+def export_users_csv():
+    if not current_user.is_admin:
+        flash("Access denied.", "danger"); return redirect(url_for("index"))
+
+    import csv
+    from io import StringIO
+    si = StringIO()
+    w = csv.writer(si)
+    w.writerow(["id", "username", "email", "is_verified", "is_admin"])
+    for u in User.query.order_by(User.id.asc()).all():
+        w.writerow([u.id, u.username, u.email, int(u.is_verified), int(u.is_admin)])
+
+    from flask import Response
+    return Response(
+        si.getvalue(),
+        mimetype="text/csv; charset=utf-8",
+        headers={"Content-Disposition": "attachment; filename=users.csv"}
+    )
+
+
+#---------------#
+#   END admin   #
+#---------------#
 
 # ลบบัญชีตัวเอง
 @app.route("/delete_account", methods=["POST"])  # ควรใช้ POST (TODo: เพิ่ม CSRF ในฟอร์ม)
@@ -224,13 +350,18 @@ def submit():
     )
 
     # เพิ่มการบันทึกลง MySQL
-    save_leave_to_db(
-        data["name"],
-        data["leave_type"],
-        data["start_date"],
-        data["end_date"],
-        data.get("note", ""),
-    )
+    try:
+        save_leave_to_db(
+            data["name"], 
+            data["leave_type"], 
+            data["start_date"], 
+            data["end_date"], 
+            data.get("note",""),
+        )
+    except ValueError as e:
+        return jsonify({"status":"error","message":str(e)}), 400
+    except Exception:
+        return jsonify({"status":"error","message":"DB error"}), 500
 
     # ✅ ส่ง Telegram Notification
     msg = (

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1 class="mb-3 text-center">ระบบจองวันลาแพทย์<br>โรงพยาบาลชนแดน</h1>
+  {% include "_form.html" %}
+  {% include "_calendar.html" %}
+  <br>
+  {% include "_alltable.html" %}
+{% endblock %}

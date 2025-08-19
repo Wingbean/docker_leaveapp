@@ -1,9 +1,29 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <h1 class="mb-3 text-center">ระบบจองวันลาแพทย์<br>โรงพยาบาลชนแดน</h1>
-  {% include "_form.html" %}
-  {% include "_calendar.html" %}
-  <br>
-  {% include "_alltable.html" %}
+  <!-- [KEEP] หัวเรื่องหลักของหน้า -->
+  <h1 class="mb-3 text-center">
+    ระบบจองวันลาแพทย์<br>โรงพยาบาลชนแดน
+  </h1>
+
+  <!-- [ADD] main + sections + id เพื่อ a11y/anchor และจัดเลย์เอาต์ -->
+  <main role="main" aria-label="หน้าหลักระบบลางาน">
+
+    <!-- [CHANGE] ใช้ Bootstrap grid: หน้าจอใหญ่จะแบ่ง 2 คอลัมน์ (ฟอร์ม/ปฏิทิน) -->
+    <div class="row g-4">
+      <section id="section-form" class="col-lg-5">
+        {% include "_form.html" %}
+      </section>
+
+      <section id="section-calendar" class="col-lg-7">
+        {% include "_calendar.html" %}
+      </section>
+    </div>
+
+    <hr class="my-4">
+
+    <section id="section-table">
+      {% include "_alltable.html" %}
+    </section>
+  </main>
 {% endblock %}

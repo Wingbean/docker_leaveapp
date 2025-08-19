@@ -2,34 +2,55 @@
 {% block content %}
 <h2 class="mb-4 text-center">สมัครสมาชิก</h2>
 
+{# [REMOVE] บล็อก error/message แบบโลคัล
+   เหตุผล: ตอนนี้เราใช้ flash ผ่าน base.html อยู่แล้ว (แสดงทุกหน้า)
+   ถ้าคงไว้จะซ้ำซ้อน/แสดงซ้ำสองที่ #}
+{# 
 {% if error %}
-    <div class="alert alert-danger">{{ error }}</div>
+  <div class="alert alert-danger">{{ error }}</div>
 {% endif %}
-
 {% if message %}
-    <div class="alert alert-success">{{ message }}</div>
+  <div class="alert alert-success">{{ message }}</div>
 {% endif %}
+#}
 
-<form method="post" class="mx-auto" style="max-width: 400px;">
-    <div class="mb-3">
-      <label for="username" class="form-label">ชื่อผู้ใช้</label>
-      <input type="text" name="username" id="username" class="form-control" required>
-    </div>
+<form method="post" action="{{ url_for('register') }}"  {# [ADD] ระบุ action ชัด #}
+      class="mx-auto" style="max-width: 400px;" novalidate>  {# [ADD] novalidate ถ้าจะให้แบ็คเอนด์ตัดสินหลัก; เบราว์เซอร์ยังเช็ค required/type ได้ #}
 
-    <div class="mb-3">
-      <label for="email" class="form-label">อีเมล</label>
-      <input type="email" name="email" id="email" class="form-control" required>
-    </div>
+  <div class="mb-3">
+    <label for="username" class="form-label">ชื่อผู้ใช้</label>
+    <input type="text"
+           name="username" id="username"
+           class="form-control" required
+           autocomplete="username" autocapitalize="off" spellcheck="false"  {# [ADD] ลด auto-correct ที่ก่อบั๊ก #}
+           maxlength="50">  {# [ADD] sync กับ models.User.username #}
+    <div class="form-text">ความยาวไม่เกิน 50 ตัวอักษร</div>  {# [ADD] ช่วยผู้ใช้เข้าใจข้อจำกัด schema #}
+  </div>
 
-    <div class="mb-3">
-      <label for="password" class="form-label">รหัสผ่าน</label>
-      <input type="password" name="password" id="password" class="form-control" required>
-    </div>
+  <div class="mb-3">
+    <label for="email" class="form-label">อีเมล</label>
+    <input type="email"
+           name="email" id="email"
+           class="form-control" required
+           autocomplete="email" inputmode="email"
+           maxlength="100">  {# [ADD] sync กับ models.User.email #}
+  </div>
 
-    <button type="submit" class="btn btn-primary w-100">สมัครสมาชิก</button>
+  <div class="mb-3">
+    <label for="password" class="form-label">รหัสผ่าน</label>
+    <input type="password"
+           name="password" id="password"
+           class="form-control" required
+           autocomplete="new-password" minlength="8" maxlength="128">  {# [ADD] guard ขั้นต้น + sync hash length #}
+    <div class="form-text">อย่างน้อย 8 ตัวอักษร</div>  {# [ADD] ชัดเจนเรื่อง policy ขั้นต่ำ #}
+  </div>
 
-    <div class="mt-3 text-center">
-      <small>หลังสมัครระบบจะส่งลิงก์ยืนยันไปยังอีเมลของคุณ</small>
-    </div>
+  <button type="submit" class="btn btn-primary w-100">สมัครสมาชิก</button>
+
+  <div class="mt-3 text-center">
+    <small>หลังสมัคร ระบบจะส่งลิงก์ยืนยันไปยังอีเมลของคุณ</small>
+  </div>
 </form>
+
+{# [NOTE] ถ้าในอนาคตใช้ Flask-WTF/CSRF ให้เพิ่ม {{ form.csrf_token }} ที่นี่ #}
 {% endblock %}

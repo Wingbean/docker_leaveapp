@@ -1,11 +1,32 @@
 <!-- ปฏิทินวันลา -->
 <h2 class="text-secondary">ปฏิทินวันลา</h2>
-<br>
-<div class="mb-3 border border-dark rounded p-4 custom-border shadow">
-<div class="mb-3">
+
+<!-- [ADD] ระบุ role/aria-live เพื่อการเข้าถึง และประกาศเมื่อปฏิทินถูกอัปเดตแบบไดนามิก -->
+<div class="mb-3 border border-dark rounded p-4 custom-border shadow"
+     role="region" aria-live="polite" aria-label="ปฏิทินวันลา">
+  
+  <div class="mb-3">
     <label for="monthSelect" class="form-label">เลือกเดือน:</label>
-    <select id="monthSelect" class="form-select w-auto d-inline-block"></select>
+    <!-- [KEEP] คง id/class เดิมเพื่อให้ script.js ใช้งานได้เหมือนเดิม -->
+    <!-- [ADD] aria-describedby อธิบายสิ่งที่ select นี้ทำ -->
+    <select id="monthSelect" class="form-select w-auto d-inline-block" aria-describedby="monthHelp"></select>
+    <div id="monthHelp" class="form-text">
+      เลือกเดือนเพื่อดูช่วงลาของทุกคนในเดือนนั้น
+    </div>
+  </div>
+
+  <div id="calendar">
+    <!-- [ADD] placeholder ระหว่างโหลดครั้งแรก; script.js จะลบ/แทนที่ให้เอง -->
+    <div class="d-flex align-items-center gap-2 text-muted" id="calendar-loading">
+      <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+      <span>กำลังโหลดปฏิทิน...</span>
+    </div>
+  </div>
 </div>
 
-<div id="calendar"></div>
-</div>
+<!-- [ADD] noscript fallback: หากผู้ใช้ปิด JavaScript -->
+<noscript>
+  <div class="alert alert-warning mt-3">
+    ต้องเปิดใช้งาน JavaScript เพื่อใช้งานปฏิทินวันลา
+  </div>
+</noscript>

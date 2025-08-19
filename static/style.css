@@ -1,48 +1,55 @@
-/* ปรับฟอนต์ระบบให้เหมือน Google Form */
+/* ========== ฟอนต์/ขนาด (ให้ทั้งเว็บ) ========== */
+/* [CHANGE] ตั้งผ่านตัวแปร Bootstrap เพื่อให้ทุกคอมโพเนนต์ตาม */
+:root {
+  --bs-body-font-family: Tahoma, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans Thai", sans-serif;
+  --bs-body-font-size: 14px;
+}
 body {
-  font-family: Tahoma, sans-serif;
-  font-size: 14px;
+  font-family: var(--bs-body-font-family);
+  font-size: var(--bs-body-font-size);
 }
 
-/*ปรับ scrollbar ให้เข้ากับ dark theme*/
-body::-webkit-scrollbar {
-  width: 8px;
-}
-body::-webkit-scrollbar-thumb {
-  background-color: #555;
-  border-radius: 4px;
+/* ========== Scrollbar ========== */
+/* [CHANGE] ใช้เฉพาะตอนธีมมืด จะได้ไม่ตีกับพื้นหลัง bg-light */
+@media (prefers-color-scheme: dark) {
+  body::-webkit-scrollbar { width: 8px; }
+  body::-webkit-scrollbar-thumb { background-color: #555; border-radius: 4px; }
 }
 
-.custom-border {
-  border-width: 2px !important;  /* ปรับให้หนากว่าปกติเล็กน้อย */
-}
+/* ========== เส้นขอบหนาขึ้นนิดหน่อย ========== */
+.custom-border { border-width: 2px !important; }
 
-/* จัดระยะห่างของตารางปฏิทิน */
-#calendar {
-  margin-top: 20px;
-}
+/* ========== ปฏิทิน ========== */
+#calendar { margin-top: 20px; }
 
-/* จัดกลางเฉพาะวันที่ในปฏิทิน */
-#calendar table td:nth-child(1),
-#calendar table td:nth-child(3),
+/* [KEEP/CLARIFY] จัดกลางเฉพาะคอลัมน์วันที่ (1 และ 3) ทั้งหัวตารางและข้อมูล  */
 #calendar table th:nth-child(1),
-#calendar table th:nth-child(3) {
+#calendar table th:nth-child(3),
+#calendar table td:nth-child(1),
+#calendar table td:nth-child(3) {
   text-align: center;
-  width: 60px;
-}
-
-/* ให้ช่องชื่อยืดหยุ่นและตัดคำ */
-.calendar-table td:nth-child(2),
-.calendar-table td:nth-child(4) {
+  width: 64px;           /* [TWEAK] ขยายเล็กน้อยให้เลข 2 หลัก + padding ไม่ตัด */
   white-space: nowrap;
-  width: 1%;
 }
 
-/* เสริม Bootstrap striped ให้สลับสีแถวชัดขึ้น */
-#calendar tr:nth-child(even) {
-  background-color: #f9f9f9;
-} 
+/* [FIX] ช่องชื่อให้ “พับบรรทัดได้” แทนการ nowrap (กันล้นจอ)  */
+/* เดิม .calendar-table ไม่ถูกใช้—ตารางเราไม่ได้ใส่คลาสนั้น จึงย้ายมา target ที่ #calendar table */
+#calendar table td:nth-child(2),
+#calendar table td:nth-child(4) {
+  white-space: normal;      /* เดิมเป็น nowrap ทำให้ชื่อยาวล้น */
+  word-break: break-word;   /* ตัดคำเมื่อยาวเกิน */
+}
 
-#calendar tr.bg-white td {
-  color: #212529 !important;  /* สีเข้มแบบ Bootstrap */
+/* [REMOVE CONFLICT] ไม่ต้องสลับสีด้วย nth-child เพราะเราทำ zebra ใน JS แล้ว */
+/* ถ้าเปิดไว้จะชนกับ Bootstrap .table-striped และสีที่ JS ใส่เอง */
+/*  #calendar tr:nth-child(even) { background-color: #f9f9f9; }  */
+
+/* [KEEP] บังคับสีข้อความสำหรับแถวที่ JS ใส่ .bg-white */
+#calendar tr.bg-white td { color: #212529 !important; }
+
+/* ให้สีสลับทั้งแถวในปฏิทิน — ลงสีที่ <td> เพื่อชนะ Bootstrap */
+/* ไม่ผูกกับ tbody อีกต่อไป */
+#calendar table.calendar-table tr.alt > * {
+  background-color: #f1f3f5 !important; /* เทาอ่อนสบายตา */
+  color: #212529;                        /* ให้สีตัวอักษรอ่านง่าย */
 }

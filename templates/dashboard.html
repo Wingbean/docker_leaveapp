@@ -2,23 +2,107 @@
 {% block content %}
 <h2 class="mb-4">📊 Dashboard สถิติการลา</h2>
 
-<!-- กราฟ -->
-<canvas id="leaveChart" height="100"></canvas>
+<!-- [NEW @line~6] เพิ่ม div ห่อ และลบ height ออกจาก canvas -->
+<div class="chart-wrap mb-3" style="position:relative; height: 360px;">
+  <canvas id="leaveChart"></canvas>
+</div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- [CHANGE] โหลด Chart.js เวอร์ชัน UMD (รองรับ ES5/เบราว์เซอร์ทั่วไป) ก่อนสคริปต์ใช้งาน -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+
 <script>
-    const ctx = document.getElementById('leaveChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: {{ monthly_summary | map(attribute='month') | list | tojson }},
-            datasets: [{
-                label: 'จำนวนวันลา',
-                data: {{ monthly_summary | map(attribute='total') | list | tojson }},
-                backgroundColor: 'rgba(75, 192, 192, 0.6)'
-            }]
+  (function () {
+    // [CHANGE] ดึงข้อมูลจาก Jinja ด้วย tojson (ปลอดภัยกว่าใส่ตัวแปรดิบ)
+    const labels = {{ monthly_summary | map(attribute='month') | list | tojson }};
+    const values = {{ monthly_summary | map(attribute='total') | list | tojson }};
+
+    // [ADD] ถ้าไม่มีข้อมูล แสดงแจ้งเตือนและซ่อน canvas (กัน error/กราฟโล่ง)
+    if (!Array.isArray(labels) || labels.length === 0) {
+      const c = document.getElementById('leaveChart');
+      if (c) c.replaceWith(Object.assign(document.createElement('div'), {
+        className: 'alert alert-info',
+        role: 'alert',
+        innerText: 'ยังไม่มีข้อมูลสถิติประจำเดือน',
+      }));
+      return;
+    }
+
+    // [ADD] ใช้สีตามธีม Bootstrap (var(--bs-primary)) เพื่อให้เข้าชุดโทนเว็บ
+    function bsPrimaryRGBA(alpha) {
+      const v = getComputedStyle(document.documentElement)
+        .getPropertyValue('--bs-primary')
+        .trim(); // รูปแบบน่าจะเป็น rgb(r, g, b) หรือ #hex (บนบางธีม)
+      // รองรับทั้ง rgb() และ hex แบบง่าย ๆ
+      let r=13,g=110,b=253; // fallback Bootstrap primary
+      if (v.startsWith('rgb')) {
+        const m = v.match(/\d+/g);
+        if (m && m.length >= 3) [r,g,b] = m.map(Number);
+      } else if (v.startsWith('#')) {
+        const hex = v.replace('#','');
+        if (hex.length === 6) {
+          r = parseInt(hex.slice(0,2),16);
+          g = parseInt(hex.slice(2,4),16);
+          b = parseInt(hex.slice(4,6),16);
         }
+      }
+      return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+    }
+
+    // [ADD] จัดรูปแบบตัวเลขแบบไทยใน tooltip/แกน
+    const thNumber = new Intl.NumberFormat('th-TH');
+
+    const ctx = document.getElementById('leaveChart').getContext('2d');
+    // [CHANGE] เพิ่ม options: responsive, title, grid, tooltip สวยงาม และ maintainAspectRatio=false ให้ยืดหยุ่น
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'จำนวนวันลา',
+          data: values,
+          backgroundColor: bsPrimaryRGBA(0.5),   // สีโปร่งสบายตา
+          borderColor: bsPrimaryRGBA(0.9),       // เส้นขอบเข้มขึ้น
+          borderWidth: 1,
+          maxBarThickness: 40                     // [ADD] จำกัดความหนาแท่งให้ดูดี
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,               // ให้ canvas สูงตาม container (height="100" ยังช่วยคุม)
+        resizeDelay: 150,                         // [ADD] ลดการ resize ถี่ ๆ กันวนลูป
+        plugins: {
+          title: {
+            display: true,
+            text: 'จำนวนวันลารายเดือน (YYYY-MM)'
+          },
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => ` ${thNumber.format(ctx.raw)} วัน`
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0,
+              callback: (v) => thNumber.format(v)
+            },
+            grid: { color: 'rgba(0,0,0,0.08)' }
+          },
+          x: {
+            grid: { display: false }
+          }
+        },
+        animation: {
+          duration: 300                           // [ADD] เร็ว ลื่น ไม่หน่วง
+        }
+      }
     });
+  })();
 </script>
 
 <!-- ตาราง -->
@@ -26,8 +110,11 @@
 <table class="table table-striped">
   <thead><tr><th>ชื่อ</th><th>จำนวนวันลา</th></tr></thead>
   <tbody>
+    {# [KEEP] แสดงตามข้อมูล; ถ้าอยากกันกรณีว่าง เติมแถวแจ้งเตือนได้ #}
     {% for row in person_summary %}
       <tr><td>{{ row.name }}</td><td>{{ row.total }}</td></tr>
+    {% else %}
+      <tr><td colspan="2" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>
     {% endfor %}
   </tbody>
 </table>

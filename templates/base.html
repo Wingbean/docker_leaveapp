@@ -1,71 +1,81 @@
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
-    {% include "_head.html" %}
+  {% include "_head.html" %}
 </head>
-
 <body class="bg-light">
 
-    <!-- ✅ Navbar ด้านบน -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('index') }}">ระบบลาแพทย์</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="{{ url_for('index') }}">ระบบลาแพทย์</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('index') }}">หน้าแรก</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('register') }}">ลงทะเบียน</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('forgot_password') }}">ลืมรหัสผ่าน</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin') }}">แอดมิน</a>
-                    </li>
-                </ul>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('index') }}">หน้าแรก</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('dashboard') }}">📊 Dashboard</a>
+          </li>
 
-                {% if current_user.is_authenticated %}
-                    <span class="navbar-text text-white me-2">{{ current_user.username }}</span>
-                    <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">ออกจากระบบ</a>
-                {% endif %}
-            </div>
-        </div>
-    </nav>
-
-    <!-- ✅ Flash message -->
-    <div class="container mt-3">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                    </div>
-                {% endfor %}
+          {# แสดงเมนูตามสถานะล็อกอิน #}
+          {% if current_user.is_authenticated %}
+            {% if (current_user.is_admin|default(false)) %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin') }}">แอดมิน</a>  {# ซ่อนถ้าไม่ใช่แอดมิน #}
+              </li>
             {% endif %}
-        {% endwith %}
+          {% else %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('register') }}">ลงทะเบียน</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('forgot_password') }}">ลืมรหัสผ่าน</a>
+            </li>
+          {% endif %}
+        </ul>
+
+        {% if current_user.is_authenticated %}
+          <span class="navbar-text text-white me-2">{{ current_user.username }}</span>
+          <a href="{{ url_for('logout') }}" class="btn btn-outline-light btn-sm">ออกจากระบบ</a>
+        {% endif %}
+      </div>
     </div>
+  </nav>
 
-    <!-- ✅ Content block -->
-    <div class="container mt-4">
-        {% block content %}{% endblock %}
-    </div>
+  <!-- Flash message -->
+  <div class="container mt-3">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% set allowed = ['primary','secondary','success','danger','warning','info','light','dark'] %}
+        {% for category, message in messages %}
+          {% set bs_cat = category if category in allowed else 'info' %} {# map 'message' -> 'info' #}
+          <div class="alert alert-{{ bs_cat }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- Content -->
+  <div class="container mt-4">
+    {% block content %}{% endblock %}
+  </div>
 
-    <!-- Custom script -->
-    <script src="/static/script.js"></script>
+  <!-- Bootstrap JS (bundle รวม Popper) -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+
+  <!-- Axios: โหลดก่อนสคริปต์ของเรา -->
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+  <!-- Custom script -->
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
-
 </html>

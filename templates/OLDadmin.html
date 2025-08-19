@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="text-center mb-4">จัดการผู้ใช้</h2>
+
+<div class="table-responsive">
+  <table class="table table-striped table-bordered align-middle">
+    <thead class="table-dark">
+      <tr>
+        <th>#</th>
+        <th>ชื่อผู้ใช้</th>
+        <th>อีเมล</th>                            {# [ADD] แสดงอีเมล #}
+        <th>ยืนยันอีเมล</th>                     {# [ADD] แสดงสถานะยืนยัน #}
+        <th>สถานะ</th>
+        <th class="text-center">การจัดการ</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>               {# [ADD] #}
+          <td>
+            {% if user.is_verified %}
+              <span class="badge text-bg-success">ยืนยันแล้ว</span>
+            {% else %}
+              <span class="badge text-bg-secondary">ยังไม่ยืนยัน</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if user.is_admin %}
+              <span class="badge text-bg-primary">ผู้ดูแล</span>
+            {% else %}
+              <span class="badge text-bg-light text-dark">ผู้ใช้ทั่วไป</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {# [CHANGE] ใช้ POST แทนลบผ่านลิงก์ GET #}
+            {% if not user.is_admin and user.id != current_user.id %}
+              <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline"
+                    onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะลบผู้ใช้นี้?');">
+                {# ถ้าในอนาคตใช้ Flask-WTF ให้ใส่ CSRF ที่นี่: {{ csrf_token() }} #}
+                <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
+              </form>
+            {% else %}
+              <span class="text-muted">-</span>   {# กันลบ Admin และกันลบตัวเอง #}
+            {% endif %}
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<a href="{{ url_for('index') }}" class="btn btn-secondary">กลับหน้าแรก</a>
+{% endblock %}

@@ -1,8 +1,46 @@
 <!-- ตารางรายการวันลา -->
 <h2 class="text-secondary">รายการวันลาทั้งหมด</h2>
-<div class="table-responsive border border-dark rounded p-4 custom-border shadow">
-    <table class="table table-dark table-bordered table-striped" id="leaveTable">
-        <thead></thead>
-        <tbody></tbody>
-    </table>
+
+<!-- [ADD] ครอบด้วย region ที่อ่านง่าย + เงา/ขอบเหมือนเดิม -->
+<div class="table-responsive border border-dark rounded p-4 custom-border shadow" aria-live="polite">
+  <table class="table table-dark table-bordered table-striped" id="leaveTable">
+    <!-- [ADD] caption ชี้แจง timezone ที่แสดงผล (JS จะแปลง UTC -> Asia/Bangkok) -->
+    <caption class="text-light-emphasis">
+      เวลาในตารางนี้แสดงตามโซนเวลา Asia/Bangkok
+    </caption>
+
+    <thead>
+      <!-- [ADD] ใส่หัวตารางแบบ static ไว้ก่อน เพื่อลดการกะพริบขาวตอนโหลด
+           (สคริปต์จะล้างแล้ววาดใหม่อยู่ดี ไม่กระทบการทำงาน) -->
+      <tr>
+        <th scope="col">Timestamp</th>
+        <th scope="col">Name</th>
+        <th scope="col">Leave Type</th>
+        <th scope="col">Start Date</th>
+        <th scope="col">End Date</th>
+        <th scope="col">Note</th>
+        <th scope="col">ลบ</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <!-- [ADD] แถว placeholder ระหว่างรอ JS โหลดข้อมูล; JS จะลบออกเอง -->
+      <tr id="leaves-loading">
+        <td colspan="7">
+          <div class="d-flex align-items-center gap-2">
+            <div class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></div>
+            <span>กำลังโหลด...</span>
+          </div>
+        </td>
+      </tr>
+      <!-- [KEEP] ส่วน tbody ปล่อยว่างให้ script.js เติมแถวจริง ๆ -->
+    </tbody>
+  </table>
 </div>
+
+<!-- [ADD] noscript fallback เผื่อผู้ใช้ปิด JS -->
+<noscript>
+  <div class="alert alert-warning mt-3">
+    ต้องเปิดใช้งาน JavaScript เพื่อดูรายการวันลา
+  </div>
+</noscript>
