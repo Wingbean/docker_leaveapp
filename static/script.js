@@ -1,6 +1,15 @@
 // script.js (เวอร์ชันปรับปรุง) — ใส่คอมเมนต์ [CHANGE]/[WHY] ทุกจุดที่แก้
 // จุดประสงค์: เร็วขึ้น, ปลอดภัยขึ้น (เลี่ยง XSS), เวลาแสดงผลถูกต้อง (UTC -> Asia/Bangkok), โค้ดอ่านง่าย/ทนทาน
 
+// [ADD] แนบ CSRF ไปกับทุกคำขอของ axios
+(() => {
+  const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+  if (token) {
+    axios.defaults.headers.common['X-CSRFToken'] = token;      // Flask-WTF จะรับ header นี้
+    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+  }
+})();
+
 // ================================
 // Helpers: วันที่/เวลา และ DOM ปลอดภัย
 // ================================

@@ -13,4 +13,5 @@
 <!-- Custom CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"> <!-- เปลี่ยนจาก /static/... -->
 
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <!-- Axios ถูกย้ายไปโหลดท้าย <body> ใน base.html เพื่อไม่บล็อกการเรนเดอร์ -->

@@ -6,6 +6,9 @@
 <form id="leaveForm"
       class="row g-3 mb-5 border border-dark rounded p-4 custom-border shadow"
       aria-describedby="leaveFormHelp">
+      
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
   <div id="leaveFormHelp" class="form-text">
     กรอกช่วงวันที่ (สิ้นสุดต้องไม่ก่อนเริ่ม) และเพิ่มหมายเหตุได้สูงสุด 100 ตัวอักษร
   </div>

@@ -2,14 +2,14 @@ from flask import Flask, render_template, request, jsonify, redirect, session, u
 from services.google_sheet_service import add_leave, get_all_leaves, get_leaves_by_month, delete_leave, get_leave_summary_by_month, get_leave_summary_by_person
 import os
 from dotenv import load_dotenv
-from services.auth_service import create_user, authenticate_user, send_verification_email
+from services.auth_service import create_user, authenticate_user, send_verification_email, send_password_reset_email
 from services.data_service import save_leave_to_db
 from models import db, User, Leave
 import uuid
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect, generate_csrf, CSRFError
 from services.telegram_service import send_telegram_message
-
 
 app = Flask(__name__)
 load_dotenv()
@@ -18,6 +18,28 @@ load_dotenv()
 app.secret_key = os.getenv("SECRET_KEY")
 if not app.secret_key:
     raise RuntimeError("SECRET_KEY is not set")
+
+# ----- CSRF -----
+app.config.update({
+    "WTF_CSRF_TIME_LIMIT": 3600,           # โทเค็นมีอายุ 1 ชม.
+    "SESSION_COOKIE_SAMESITE": "Lax",
+    "SESSION_COOKIE_SECURE": True,         # ใช้ True เมื่อรันผ่าน HTTPS จริง
+    "REMEMBER_COOKIE_SECURE": True,
+})
+
+csrf = CSRFProtect()
+csrf.init_app(app)
+
+@app.context_processor                   # [ADD]
+def inject_csrf_token():
+    return dict(csrf_token=generate_csrf)
+
+# [แนะนำ] หน้า error สวย ๆ เวลา CSRF ไม่ผ่าน
+@app.errorhandler(CSRFError)
+def handle_csrf_error(e):
+    # ถ้ายังไม่มี template แยก จะส่งข้อความตรง ๆ ก็ได้
+    return (f"CSRF validation failed: {e.description}", 400)
+
 
 MYSQL_USER = os.getenv("MYSQL_USER")
 MYSQL_PASSWORD = os.getenv("MYSQL_PASSWORD")
@@ -151,18 +173,25 @@ def forgot_password():
         username = request.form["username"].strip()
         user = User.query.filter_by(username=username).first()
 
-        # ไม่เปิดเผยว่ามีบัญชีหรือไม่ (ป้องกัน user-enumeration)
-        if user:
-            user.reset_token = str(uuid.uuid4())
-            db.session.commit()
-            reset_url = f"{request.url_root.rstrip('/')}/reset/{user.reset_token}"
-            # ในโปรดักชัน: ส่งอีเมลลิงก์นี้แทนการโชว์
-            current_app.logger.info("Password reset URL for user_id=%s: %s", user.id, reset_url)
+        if not user:
+            flash("ไม่พบบัญชีผู้ใช้", "danger")
+            return render_template("forgot_password.html")
 
-        flash("ถ้าพบชื่อผู้ใช้นี้ ระบบได้ส่งคำแนะนำไปยังอีเมลที่ผูกไว้แล้ว", "info")
-        return redirect(url_for("forgot_password"))  # PRG
+        # ออกโทเค็นใหม่ทุกครั้ง
+        user.reset_token = str(uuid.uuid4())
+        db.session.commit()
+
+        try:
+            send_password_reset_email(user)  # [ADD] ส่งอีเมลจริง
+            flash("ส่งลิงก์รีเซ็ตรหัสผ่านไปยังอีเมลของคุณแล้ว", "info")
+        except Exception:
+            # กันพัง: ถ้าส่งอีเมลไม่ได้ ยังบอกลิงก์ให้ใช้งานได้ทันที
+            app.logger.exception("Failed to send reset email")
+            reset_url = f"{app.config['BASE_URL'].rstrip('/')}/reset/{user.reset_token}"
+            flash(f"อีเมลส่งไม่สำเร็จ แต่คุณสามารถใช้ลิงก์นี้แทน: {reset_url}", "warning")
 
     return render_template("forgot_password.html")
+
 
 # หน้า reset pasword
 @app.route("/reset/<token>", methods=["GET", "POST"])

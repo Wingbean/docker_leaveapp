@@ -52,7 +52,9 @@
           <td class="text-center">
             {% if not user.is_verified %}
               <form method="post" action="{{ url_for('admin_resend_verify', user_id=user.id) }}" class="d-inline">
-                {# <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> #}
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                
                 <button type="submit" class="btn btn-outline-info btn-sm">ส่งลิงก์ยืนยัน</button>
               </form>
             {% endif %}
@@ -60,7 +62,9 @@
             {% if user.id != current_user.id %}
               <form method="post" action="{{ url_for('admin_force_reset', user_id=user.id) }}" class="d-inline"
                     onsubmit="return confirm('ออกลิงก์รีเซ็ตรหัสผ่านให้ผู้ใช้นี้?');">
-                {# <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> #}
+                
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <button type="submit" class="btn btn-outline-warning btn-sm">ออกลิงก์รีเซ็ต</button>
               </form>
             {% endif %}
@@ -69,6 +73,9 @@
               <form method="post"
                     action="{{ url_for('admin_toggle_admin', user_id=user.id) }}"
                     onsubmit="return confirm({{ (('ถอนสิทธิ์แอดมิน' if user.is_admin else 'เลื่อนเป็นแอดมิน') ~ ' สำหรับผู้ใช้นี้?') | tojson }});">
+                  
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <button type="submit" class="btn btn-outline-secondary btn-sm">
                   {{ "ถอนแอดมิน" if user.is_admin else "เลื่อนเป็นแอดมิน" }}
                 </button>
@@ -78,7 +85,9 @@
             {% if not user.is_admin and user.id != current_user.id %}
               <form method="post" action="{{ url_for('delete_user', user_id=user.id) }}" class="d-inline"
                     onsubmit="return confirm('คุณแน่ใจหรือไม่ที่จะลบผู้ใช้นี้?');">
-                {# <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> #}
+
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
                 <button type="submit" class="btn btn-danger btn-sm">ลบ</button>
               </form>
             {% else %}

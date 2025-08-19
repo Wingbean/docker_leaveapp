@@ -17,6 +17,8 @@
 <form method="post" action="{{ url_for('register') }}"  {# [ADD] ระบุ action ชัด #}
       class="mx-auto" style="max-width: 400px;" novalidate>  {# [ADD] novalidate ถ้าจะให้แบ็คเอนด์ตัดสินหลัก; เบราว์เซอร์ยังเช็ค required/type ได้ #}
 
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
   <div class="mb-3">
     <label for="username" class="form-label">ชื่อผู้ใช้</label>
     <input type="text"

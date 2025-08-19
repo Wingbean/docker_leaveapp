@@ -48,3 +48,23 @@ def authenticate_user(username, password):
     if user and user.check_password(password) and user.is_verified: # ถ้ามี user และ password ถูกต้อง
         return user                           # คืนค่าผู้ใช้นั้นกลับไป
     return None                               # ถ้าไม่ถูกต้อง คืน None
+
+def send_password_reset_email(user):  # [ADD]
+    token = user.reset_token
+    base = current_app.config["BASE_URL"].rstrip("/")
+    link = f"{base}/reset/{token}"
+
+    html = f"""
+    <p>กรุณาคลิกลิงก์เพื่อรีเซ็ตรหัสผ่าน:</p>
+    <p><a href="{link}">{link}</a></p>
+    <p>หากไม่ได้ร้องขอ คุณสามารถเพิกเฉยอีเมลนี้ได้</p>
+    """
+
+    msg = MIMEText(html, "html", "utf-8")
+    msg["Subject"] = "รีเซ็ตรหัสผ่าน (Leave App)"
+    msg["From"] = formataddr(("Leave App", current_app.config["EMAIL_FROM"]))
+    msg["To"] = user.email
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(current_app.config["EMAIL_FROM"], current_app.config["EMAIL_PASSWORD"])
+        smtp.send_message(msg)
