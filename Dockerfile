@@ -19,4 +19,4 @@ RUN pip install --upgrade pip setuptools wheel && \
 COPY . .
 
 EXPOSE 5001
-CMD ["gunicorn", "-w", "2", "-b", "0.0.0.0:5001", "app:app"]
+CMD ["gunicorn", "--timeout", "180", "--graceful-timeout", "30","--access-logfile", "-", "--error-logfile", "-","-w", "2", "-b", "0.0.0.0:5001", "app:app"]

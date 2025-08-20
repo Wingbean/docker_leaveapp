@@ -28,6 +28,9 @@
               <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('admin') }}">แอดมิน</a>  {# ซ่อนถ้าไม่ใช่แอดมิน #}
               </li>
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('pedx_upload') }}">อัปโหลดรายงาน PEdx</a>
+              </li>
             {% endif %}
           {% else %}
             <li class="nav-item">

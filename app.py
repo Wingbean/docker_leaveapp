@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from services.auth_service import create_user, authenticate_user, send_verification_email, send_password_reset_email
 from services.data_service import save_leave_to_db
+from services.report_service import run_report_and_push
 from models import db, User, Leave
 import uuid
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -73,6 +74,9 @@ app.config["BASE_URL"] = os.getenv("BASE_URL", "http://localhost:5001") # ใช
 app.config.setdefault("SESSION_COOKIE_SAMESITE", "Lax")
 app.config.setdefault("SESSION_COOKIE_SECURE", True)        # ตั้ง True ถ้าใช้ HTTPS
 app.config.setdefault("REMEMBER_COOKIE_SECURE", True)       # ตั้ง True ถ้าใช้ HTTPS
+
+app.config["REPORT_SPREADSHEET_ID"] = os.getenv("REPORT_SPREADSHEET_ID")
+app.config["REPORT_WORKSHEET"] = os.getenv("REPORT_WORKSHEET")
 
 db.init_app(app)
 migrate = Migrate(app, db) # <--- เพิ่มบรรทัดนี้
@@ -439,6 +443,36 @@ def dashboard():
     return render_template("dashboard.html",
                            monthly_summary=monthly_summary,
                            person_summary=person_summary)
+
+#----------------------#
+# Route Module อื่น     #
+#----------------------#
+@app.route("/pedx/upload", methods=["GET", "POST"])
+@login_required
+def pedx_upload():
+    # แนะนำ: จำกัดเฉพาะ admin
+    if not getattr(current_user, "is_admin", False):
+        flash("Access denied.", "danger")
+        return redirect(url_for("index"))
+
+    if request.method == "POST":
+        start_date = (request.form.get("start_date") or "").strip()
+        if not start_date:
+            flash("กรุณาเลือกระบุวันที่เริ่มต้น", "warning")
+            return render_template("pedx.html")
+
+        try:
+            result = run_report_and_push(start_date)
+            flash(f"อัปโหลดสำเร็จ: {result['rows']} แถว", "success")
+        except Exception as e:
+            # log จริงก็ได้: app.logger.exception(e)
+            flash(f"อัปโหลดล้มเหลว: {e}", "danger")
+
+        return redirect(url_for("pedx_upload"))
+
+    # GET
+    return render_template("pedx.html")
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5001, debug=True)  # เปลี่ยนพอร์ตเป็น 5001

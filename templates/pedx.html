@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-4">อัปโหลดรายงาน PeDx (HOSxP → Google Sheet)</h2>
+
+<form method="POST" action="{{ url_for('pedx_upload') }}" 
+    class="row g-3 border border-dark rounded p-4 custom-border shadow" 
+    style="max-width: 520px;">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+  <div class="col-12">
+    <label for="start_date" class="form-label">วันที่เริ่มต้น (YYYY-MM-DD)</label>
+    <input type="date" class="form-control" id="start_date" name="start_date" required>
+    <div class="form-text">ระบบจะดึงข้อมูลตั้งแต่วันที่ระบุ จนถึงปัจจุบัน</div>
+  </div>
+
+  <div class="col-12">
+    <button type="submit" class="btn btn-primary">รันและอัปโหลด</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary ms-2">กลับหน้าหลัก</a>
+  </div>
+</form>
+
+<div class="alert alert-info mt-4">
+  ระบบจะอัปเดตชีต: <code>{{ config['REPORT_SPREADSHEET_ID'] }}</code>, แผ่นงาน: <code>{{ config['REPORT_WORKSHEET'] }}</code>
+</div>
+{% endblock %}
